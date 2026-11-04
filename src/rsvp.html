@@ -17,15 +17,15 @@
 
 <main id="contenu">
   <section class="page-hero">
-    <div class="pattern" aria-hidden="true"></div>
     <div class="container">
       <p class="eyebrow">Réponse souhaitée</p>
       <h1>Confirmer ma présence</h1>
       <p>Quelques informations suffisent. Votre réponse aide les familles à vous accueillir dans les meilleures conditions.</p>
     </div>
   </section>
+  <div class="ribbon" aria-hidden="true"></div>
 
-  <section class="section" style="padding-top:8px">
+  <section class="section section-form">
     <div class="container form-wrap">
       <div class="card" id="rsvp-card">
 
@@ -108,19 +108,21 @@
           <h2 id="thanks-title">Merci pour votre réponse !</h2>
           <p class="msg" id="thanks-msg"></p>
           <span class="saved-ok"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M4 12.5 9 17.5 20 6.5"/></svg><span id="saved-at">Réponse enregistrée</span></span>
-          <dl class="recap" id="recap"></dl>
 
-          <!-- Invitation personnelle : uniquement si l'invité a confirmé sa présence -->
+          <!-- Invitation personnelle : uniquement si l'invité a confirmé sa présence.
+               Le bouton vient avant l'aperçu pour être visible sans défiler sur téléphone. -->
           <div class="invite-box" id="invite-box" hidden>
-            <h3>Votre invitation</h3>
+            <h3>Votre invitation est prête</h3>
             <p class="invite-status" id="invite-status" role="status"></p>
-            <img id="invite-preview" alt="Aperçu de votre invitation personnelle" hidden>
             <div class="invite-actions">
               <a class="btn btn-dark btn-block" id="invite-download" hidden>Télécharger mon invitation</a>
               <button type="button" class="btn btn-outline-dark btn-block" id="invite-share" hidden>Partager l’invitation</button>
             </div>
+            <img id="invite-preview" alt="Aperçu de votre invitation personnelle" hidden>
             <p class="invite-hint" id="invite-hint" hidden>Si le téléchargement ne démarre pas, appuyez longuement sur l’image pour l’enregistrer.</p>
           </div>
+
+          <dl class="recap" id="recap"></dl>
 
           <div class="edit-link-box">
             <p><strong>Votre lien personnel de modification.</strong> Gardez-le : il vous permettra de changer votre réponse plus tard. Ne le partagez pas.</p>

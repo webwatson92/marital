@@ -11,9 +11,7 @@
   const CONTENT = WIDTH - MARGIN * 2;
   const CENTER = WIDTH / 2;
 
-  const NIGHT = '#101B3D';
   const DEEP = '#0A1230';
-  const SOFT = '#17244E';
   const YELLOW = '#F9E000';
   const WHITE = '#FFFFFF';
   const TEXT_SOFT = 'rgba(255, 255, 255, .78)';
@@ -64,51 +62,57 @@
     }
   }
 
-  function roundedRect(ctx, x, y, w, h, r) {
-    ctx.beginPath();
-    ctx.moveTo(x + r, y);
-    ctx.arcTo(x + w, y, x + w, y + h, r);
-    ctx.arcTo(x + w, y + h, x, y + h, r);
-    ctx.arcTo(x, y + h, x, y, r);
-    ctx.arcTo(x, y, x + w, y, r);
-    ctx.closePath();
-  }
-
   function drawBackground(ctx, height) {
-    const bg = ctx.createLinearGradient(0, 0, 0, height);
-    bg.addColorStop(0, DEEP);
-    bg.addColorStop(0.45, NIGHT);
-    bg.addColorStop(1, DEEP);
-    ctx.fillStyle = bg;
+    ctx.fillStyle = DEEP;
     ctx.fillRect(0, 0, WIDTH, height);
 
-    const halo = ctx.createRadialGradient(CENTER, 420, 40, CENTER, 420, 620);
+    const halo = ctx.createRadialGradient(CENTER, 520, 40, CENTER, 520, 760);
     halo.addColorStop(0, 'rgba(34, 52, 110, .85)');
     halo.addColorStop(1, 'rgba(34, 52, 110, 0)');
     ctx.fillStyle = halo;
-    ctx.fillRect(0, 0, WIDTH, Math.min(height, 1100));
+    ctx.fillRect(0, 0, WIDTH, Math.min(height, 1300));
 
     ctx.strokeStyle = LINE;
-    ctx.lineWidth = 3;
+    ctx.lineWidth = 2;
     ctx.strokeRect(34, 34, WIDTH - 68, height - 68);
+    ctx.strokeStyle = 'rgba(255, 255, 255, .14)';
     ctx.lineWidth = 1;
-    ctx.strokeRect(48, 48, WIDTH - 96, height - 96);
+    ctx.strokeRect(47.5, 47.5, WIDTH - 95, height - 95);
   }
 
-  // Arche du grand visuel d'accueil, qui s'estompe vers le bas.
-  function drawArch(ctx, bottom) {
-    const radius = 440;
-    const top = 62;
-    const fade = ctx.createLinearGradient(0, top, 0, bottom);
-    fade.addColorStop(0, 'rgba(249, 224, 0, .55)');
-    fade.addColorStop(1, 'rgba(249, 224, 0, 0)');
-    ctx.strokeStyle = fade;
+  // Monogramme O&K, identique à celui de la page d'accueil.
+  function drawCrest(ctx, y) {
+    const radius = 58;
+    ctx.strokeStyle = YELLOW;
     ctx.lineWidth = 2;
     ctx.beginPath();
-    ctx.moveTo(CENTER - radius, bottom);
-    ctx.lineTo(CENTER - radius, top + radius);
-    ctx.arc(CENTER, top + radius, radius, Math.PI, 0);
-    ctx.lineTo(CENTER + radius, bottom);
+    ctx.arc(CENTER, y + radius, radius, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.strokeStyle = LINE;
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.arc(CENTER, y + radius, radius - 7, 0, Math.PI * 2);
+    ctx.stroke();
+
+    const parts = [['O', serif(40, 600), WHITE], ['&', serif(40, 500, true), YELLOW], ['K', serif(40, 600), WHITE]];
+    const gap = 3;
+    const width = parts.reduce((w, [text, font]) => { ctx.font = font; return w + ctx.measureText(text).width + gap; }, -gap);
+    let cursor = CENTER - width / 2;
+    ctx.textAlign = 'left';
+    for (const [text, font, color] of parts) {
+      ctx.font = font;
+      ctx.fillStyle = color;
+      ctx.fillText(text, cursor, y + radius + 13);
+      cursor += ctx.measureText(text).width + gap;
+    }
+  }
+
+  function drawRule(ctx, y, color) {
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(MARGIN, y + 0.5);
+    ctx.lineTo(WIDTH - MARGIN, y + 0.5);
     ctx.stroke();
   }
 
@@ -132,18 +136,23 @@
   }
 
   // Bloc d'un événement. Renvoie sa hauteur ; ne dessine que si paint est vrai.
-  function eventBlock(ctx, event, top, paint) {
-    const PADDING = 40;
+  function eventBlock(ctx, event, numeral, top, paint) {
+    const PADDING = 34;
     const LABEL_WIDTH = 170;
-    const left = MARGIN + PADDING;
+    const left = MARGIN;
     const valueLeft = left + LABEL_WIDTH;
-    const valueWidth = CONTENT - PADDING * 2 - LABEL_WIDTH;
+    const valueWidth = CONTENT - LABEL_WIDTH;
     let y = top + PADDING;
 
     ctx.textAlign = 'left';
+    ctx.font = serif(32, 500, true);
+    ctx.fillStyle = YELLOW;
+    if (paint) ctx.fillText(numeral, left, y + 26);
+    y += 40;
+
     ctx.fillStyle = WHITE;
-    ctx.font = serif(56, 600);
-    for (const line of wrap(ctx, event.title, CONTENT - PADDING * 2)) {
+    ctx.font = serif(58, 500);
+    for (const line of wrap(ctx, event.title, CONTENT)) {
       if (paint) ctx.fillText(line, left, y + 46);
       y += 62;
     }
@@ -175,7 +184,7 @@
       y += 6;
       ctx.font = serif(33, 500, true);
       ctx.fillStyle = TEXT_SOFT;
-      for (const line of wrap(ctx, event.note, CONTENT - PADDING * 2)) {
+      for (const line of wrap(ctx, event.note, CONTENT)) {
         if (paint) ctx.fillText(line, left, y + 30);
         y += 40;
       }
@@ -185,7 +194,7 @@
 
   // Compose la page entière. Renvoie la hauteur nécessaire ; ne dessine que si paint est vrai.
   function compose(ctx, data, paint) {
-    let y = 128;
+    let y = 96;
 
     const centered = (text, font, color, lineHeight, after = 0, max = CONTENT) => {
       ctx.font = font;
@@ -204,14 +213,26 @@
       y += lineHeight + after;
     };
 
-    spacedLine('INVITATION', sans(28), YELLOW, 10, 40, 22);
-    spacedLine('FAMILLES', sans(26), TEXT_SOFT, 13, 36, 6);
-    spacedLine('OUATTARA', serif(116), WHITE, 6, 116);
-    spacedLine('&', serif(92, 500, true), YELLOW, 0, 100);
-    spacedLine('KANTÉ', serif(116), WHITE, 6, 116, 18);
-    centered('« Deux familles, une union, une célébration. »', serif(42, 500, true), WHITE, 52, 22);
+    if (paint) drawCrest(ctx, y);
+    y += 116 + 30;
+    spacedLine('INVITATION', sans(28), YELLOW, 10, 40, 18);
+    spacedLine('FAMILLES', sans(26), TEXT_SOFT, 13, 36, 8);
+    spacedLine('OUATTARA', serif(122), WHITE, 6, 122);
+    // Esperluette encadrée de deux filets, comme sur la page d'accueil.
+    if (paint) {
+      ctx.strokeStyle = LINE;
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(CENTER - 210, y + 50.5);
+      ctx.lineTo(CENTER - 66, y + 50.5);
+      ctx.moveTo(CENTER + 66, y + 50.5);
+      ctx.lineTo(CENTER + 210, y + 50.5);
+      ctx.stroke();
+    }
+    spacedLine('&', serif(88, 500, true), YELLOW, 0, 96);
+    spacedLine('KANTÉ', serif(122), WHITE, 6, 122, 20);
+    centered('« Deux familles, une union, une célébration. »', serif(42, 500, true), WHITE, 52, 20);
     centered('Avec une immense joie, les familles OUATTARA et KANTÉ vous convient à célébrer l’union de leurs enfants.', sans(28, 400), TEXT_SOFT, 42, 36, 830);
-    if (paint) drawArch(ctx, y - 30);
 
     if (paint) drawOrnament(ctx, y + 8);
     y += 52;
@@ -228,21 +249,19 @@
     const people = data.partySize > 1 ? `POUR ${data.partySize} PERSONNES` : 'POUR 1 PERSONNE';
     spacedLine(people, sans(27, 600), YELLOW, 5, 38, 44);
 
-    for (const event of data.events) {
-      const height = eventBlock(ctx, event, y, false);
+    data.events.forEach((event, i) => {
+      const numeral = ['I', 'II', 'III', 'IV', 'V'][i] || '';
       if (paint) {
-        roundedRect(ctx, MARGIN, y, CONTENT, height, 22);
-        ctx.fillStyle = SOFT;
-        ctx.fill();
-        ctx.strokeStyle = LINE;
-        ctx.lineWidth = 1.5;
-        ctx.stroke();
-        eventBlock(ctx, event, y, true);
+        drawRule(ctx, y, LINE);
+        eventBlock(ctx, event, numeral, y, true);
       }
-      y += height + 26;
+      y += eventBlock(ctx, event, numeral, y, false);
+    });
+    if (data.events.length) {
+      if (paint) drawRule(ctx, y, LINE);
+      y += 42;
     }
 
-    y += 18;
     centered('Programme à jour sur', sans(25, 400), TEXT_FAINT, 36, 4);
     centered(data.site, sans(27, 600), YELLOW, 40, 0);
     return y + 104;

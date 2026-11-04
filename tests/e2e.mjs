@@ -381,7 +381,14 @@ await step('Invitation : téléchargeable après un « Oui », jamais après un 
 
   await p.waitForFunction(() => document.getElementById('invite-preview').naturalWidth > 0);
   assert.equal(await p.$eval('#invite-preview', (i) => i.naturalWidth), 1080);
-  await sleep(400);
+  await sleep(1000);
+  // Le bouton doit se voir sans défiler après l'envoi (hors barre de navigation mobile).
+  const seen = await p.$eval('#invite-download', (a) => {
+    const r = a.getBoundingClientRect();
+    return { top: r.top, bottom: r.bottom, limit: innerHeight - 68 };
+  });
+  assert.ok(seen.top >= 0 && seen.bottom <= seen.limit, 'bouton visible sans défiler : ' + JSON.stringify(seen));
+  await shot(p, '16-rsvp-invitation-ecran');
   await shot(p, '16-rsvp-invitation-mobile', true);
 
   await tap(p, '#invite-download');
@@ -450,6 +457,27 @@ await step('Accueil : rien ne déborde, du petit téléphone à l’ordinateur',
     await sleep(100);
     await shot(p, name + '-complet', true);
     await p.browserContext().close();
+  }
+});
+
+await step('Programme et RSVP : rien ne déborde, du petit téléphone à l’ordinateur', async () => {
+  const sizes = [['petit-mobile', { width: 360, height: 640, deviceScaleFactor: 2, isMobile: true, hasTouch: true }], ['ordinateur', { width: 1440, height: 900 }]];
+  for (const pageName of ['programme', 'rsvp']) {
+    for (const [sizeName, viewport] of sizes) {
+      const p = await newPage(viewport);
+      await p.goto(`${BASE}/${pageName}.html`, { waitUntil: 'networkidle0' });
+      await p.evaluate(() => document.fonts.ready);
+      const overflow = await p.evaluate(() => [...document.querySelectorAll('main *')].filter((el) => {
+        if (el.closest('.hp')) return false; // champ piège volontairement hors écran
+        const r = el.getBoundingClientRect();
+        return r.width > 0 && (r.left < -1 || r.right > innerWidth + 1);
+      }).map((el) => el.className || el.tagName));
+      assert.deepEqual(overflow, [], `${pageName} ${sizeName}`);
+      await p.evaluate(() => document.querySelectorAll('.fade-in').forEach((e) => { e.style.transition = 'none'; e.classList.add('visible'); }));
+      await sleep(100);
+      await shot(p, `22-${pageName}-${sizeName}-complet`, true);
+      await p.browserContext().close();
+    }
   }
 });
 
