@@ -56,6 +56,9 @@
   }
 
   /* ---------------- Utilitaires ---------------- */
+  // Les horodatages s'affichent à l'heure de la Côte d'Ivoire, quel que soit le réglage de l'appareil.
+  const TIME_ZONE = 'Africa/Abidjan';
+
   const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
   function parseDate(iso) {
@@ -199,7 +202,7 @@
   document.addEventListener('DOMContentLoaded', initChrome);
 
   window.Site = {
-    CFG, rpc, ApiError, ERRORS, esc, formatDate, shortDate, parseDate, getPublicInfo, FALLBACK_EVENTS,
+    CFG, rpc, ApiError, ERRORS, TIME_ZONE, esc, formatDate, shortDate, parseDate, getPublicInfo, FALLBACK_EVENTS,
     eventCard, dateCard, ICONS, toast, copyText, siteUrl, whatsappShareUrl, observeFadeIns, TBC,
   };
 })();

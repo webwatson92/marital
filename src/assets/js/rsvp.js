@@ -153,7 +153,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       ? 'Les familles OUATTARA & KANTÉ vous remercient pour votre retour et seront heureuses de partager ces moments de célébration avec vous.'
       : 'Les familles OUATTARA & KANTÉ vous remercient pour votre retour. Vous serez dans leurs pensées en ces moments de célébration.';
     const when = new Date(res.responded_at || Date.now());
-    $('saved-at').textContent = 'Réponse enregistrée le ' + when.toLocaleDateString('fr-FR') + ' à ' + when.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+    $('saved-at').textContent = 'Réponse enregistrée le ' + when.toLocaleDateString('fr-FR', { timeZone: S.TIME_ZONE }) + ' à ' + when.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', timeZone: S.TIME_ZONE }) + ' (heure d’Abidjan)';
     const titles = Object.fromEntries((events || []).map((e) => [e.key, e.title]));
     const rows = [
       ['Réponse', yes ? 'Présent(e)' : 'Absent(e)'],
@@ -207,7 +207,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       fill(mine);
       const banner = $('edit-banner');
       banner.hidden = false;
-      banner.innerHTML = 'Vous avez déjà répondu' + (mine.responded_at ? ' le ' + S.esc(new Date(mine.responded_at).toLocaleDateString('fr-FR')) : '')
+      banner.innerHTML = 'Vous avez déjà répondu' + (mine.responded_at ? ' le ' + S.esc(new Date(mine.responded_at).toLocaleDateString('fr-FR', { timeZone: S.TIME_ZONE })) : '')
         + '. Vous pouvez modifier votre réponse ci-dessous. <button type="button" class="btn btn-outline-dark btn-sm" id="new-person" style="margin-top:10px">Répondre pour une autre personne</button>';
       $('new-person').addEventListener('click', () => {
         editToken = null; form.reset(); setPresence(); setParty(1); banner.hidden = true; setBusy(false); hideError();

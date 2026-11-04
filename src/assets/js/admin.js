@@ -8,6 +8,8 @@
   'use strict';
   const CFG = window.APP_CONFIG || {};
   const $ = (id) => document.getElementById(id);
+  // Les horodatages s'affichent à l'heure de la Côte d'Ivoire, quel que soit le réglage de l'appareil.
+  const TIME_ZONE = 'Africa/Abidjan';
   const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
   const CATEGORIES = {
@@ -98,7 +100,7 @@
     renderGuests();
     renderEventForms();
     renderSettings();
-    $('stamp').textContent = 'Dernière actualisation : ' + new Date().toLocaleString('fr-FR');
+    $('stamp').textContent = 'Dernière actualisation : ' + new Date().toLocaleString('fr-FR', { timeZone: TIME_ZONE }) + ' (heure d’Abidjan)';
   }
 
   /* ---------------- Statistiques ---------------- */
@@ -180,7 +182,7 @@
       && (!q || norm(g.full_name).includes(q) || norm(g.companions).includes(q) || (qd.length >= 3 && g.phone.replace(/\D/g, '').includes(qd))));
   }
   const evTitle = (k) => (state.events.find((e) => e.key === k) || {}).title || k;
-  const fmtDate = (iso) => iso ? new Date(iso).toLocaleString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—';
+  const fmtDate = (iso) => iso ? new Date(iso).toLocaleString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: TIME_ZONE }) : '—';
 
   function renderGuests() {
     const rows = filtered();

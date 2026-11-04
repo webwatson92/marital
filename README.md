@@ -176,7 +176,7 @@ Si le code est sur GitHub : **Settings → Secrets and variables → Actions** �
 ```bash
 npm install
 npm test                 # 11 tests de la base : droits d'accès, validation, doublons, modification, anti-abus, admin
-CHROME_PATH=/chemin/vers/chrome npm run test:e2e   # 17 parcours dans un vrai navigateur (mobile + ordinateur)
+CHROME_PATH=/chemin/vers/chrome npm run test:e2e   # 18 parcours dans un vrai navigateur (mobile + ordinateur)
 npm run dev              # site complet sur http://localhost:8888 avec une base temporaire (identifiants affichés)
 ```
 

@@ -338,6 +338,34 @@ await step('Page introuvable (404) stylée', async () => {
   await p.browserContext().close();
 });
 
+await step('Horodatages à l’heure d’Abidjan sur un appareil réglé sur un autre fuseau', async () => {
+  // Côté organisateur : une réponse à 23h30 UTC tomberait le lendemain à Tokyo (UTC+9).
+  await a.emulateTimezone('Asia/Tokyo');
+  await srv.db.query("update public.guests set responded_at = '2026-12-24T23:30:00Z' where full_name = 'Koffi Yao'");
+  await tap(a, '[data-tab="dashboard"]');
+  await tap(a, '#refresh-btn');
+  await sleep(500);
+  assert.match(await text(a, '#stamp'), /\(heure d’Abidjan\)$/);
+  await tap(a, '[data-tab="guests"]');
+  const row = await a.$$eval('#rows tr', (t) => t.map((x) => x.innerText).find((x) => x.includes('Koffi Yao')));
+  assert.match(row, /24\/12\/2026,? 23:30/);
+
+  // Côté invité : message de remerciement après l'envoi.
+  const p = await newPage();
+  await p.emulateTimezone('Asia/Tokyo');
+  await p.goto(BASE + '/rsvp.html', { waitUntil: 'networkidle0' });
+  await p.type('#full_name', 'Mariam Diallo');
+  await p.type('#phone', '07 55 55 55 55');
+  await tap(p, 'input[name="category"][value="ami"]');
+  await tap(p, 'input[name="status"][value="no"]');
+  await tap(p, '#submit-btn');
+  await p.waitForSelector('#thanks:not([hidden])', { timeout: 5000 });
+  const saved = (await rows()).find((r) => r.full_name === 'Mariam Diallo').responded_at;
+  const inAbidjan = new Date(saved).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', timeZone: 'Africa/Abidjan' });
+  assert.ok((await text(p, '#saved-at')).endsWith(`à ${inAbidjan} (heure d’Abidjan)`), await text(p, '#saved-at'));
+  await p.browserContext().close();
+});
+
 await browser.close();
 await srv.close();
 
