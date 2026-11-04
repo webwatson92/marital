@@ -9,6 +9,7 @@
 <meta property="og:url" content="%%SITE_URL%%/rsvp.html">
 <link rel="canonical" href="%%SITE_URL%%/rsvp.html">
 <meta name="referrer" content="no-referrer">
+<script src="assets/js/invitation.js" defer></script>
 <script src="assets/js/rsvp.js" defer></script>
 </head>
 <body data-page="rsvp">
@@ -108,6 +109,18 @@
           <p class="msg" id="thanks-msg"></p>
           <span class="saved-ok"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M4 12.5 9 17.5 20 6.5"/></svg><span id="saved-at">Réponse enregistrée</span></span>
           <dl class="recap" id="recap"></dl>
+
+          <!-- Invitation personnelle : uniquement si l'invité a confirmé sa présence -->
+          <div class="invite-box" id="invite-box" hidden>
+            <h3>Votre invitation</h3>
+            <p class="invite-status" id="invite-status" role="status"></p>
+            <img id="invite-preview" alt="Aperçu de votre invitation personnelle" hidden>
+            <div class="invite-actions">
+              <a class="btn btn-dark btn-block" id="invite-download" hidden>Télécharger mon invitation</a>
+              <button type="button" class="btn btn-outline-dark btn-block" id="invite-share" hidden>Partager l’invitation</button>
+            </div>
+            <p class="invite-hint" id="invite-hint" hidden>Si le téléchargement ne démarre pas, appuyez longuement sur l’image pour l’enregistrer.</p>
+          </div>
 
           <div class="edit-link-box">
             <p><strong>Votre lien personnel de modification.</strong> Gardez-le : il vous permettra de changer votre réponse plus tard. Ne le partagez pas.</p>

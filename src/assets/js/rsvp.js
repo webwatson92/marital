@@ -164,11 +164,59 @@ document.addEventListener('DOMContentLoaded', async () => {
     $('wa-link').href = S.whatsappShareUrl('Mon lien pour modifier ma réponse au mariage des FAMILLES OUATTARA & KANTÉ : ' + url);
     $('copy-link').onclick = async () => S.toast((await S.copyText(url)) ? 'Lien copié' : 'Copie impossible : notez le lien ' + url);
 
+    prepareInvite(res);
+
     form.hidden = true;
     $('edit-banner').hidden = true;
     $('thanks').hidden = false;
     $('rsvp-card').scrollIntoView({ behavior: 'smooth', block: 'start' });
     $('thanks').focus({ preventScroll: true });
+  }
+
+  /* ---------- Invitation personnelle (présence confirmée uniquement) ---------- */
+  let inviteUrl = null;
+  let inviteRun = 0;
+
+  async function prepareInvite(guest) {
+    const run = ++inviteRun; // seule la dernière demande compte
+    const status = $('invite-status');
+    const preview = $('invite-preview');
+    const share = $('invite-share');
+    const links = [$('invite-download'), $('banner-invite')].filter(Boolean);
+
+    links.forEach((a) => { a.hidden = true; a.removeAttribute('href'); });
+    share.hidden = true;
+    preview.hidden = true;
+    preview.removeAttribute('src');
+    $('invite-hint').hidden = true;
+    if (inviteUrl) { URL.revokeObjectURL(inviteUrl); inviteUrl = null; }
+
+    const yes = guest.status === 'yes';
+    $('invite-box').hidden = !yes;
+    if (!yes) return;
+
+    status.hidden = false;
+    status.textContent = 'Préparation de votre invitation…';
+    try {
+      const { blob, filename } = await window.Invitation.create(guest, info.events);
+      if (run !== inviteRun) return;
+      inviteUrl = URL.createObjectURL(blob);
+      links.forEach((a) => { a.href = inviteUrl; a.download = filename; a.hidden = false; });
+      preview.src = inviteUrl;
+      preview.hidden = false;
+      status.hidden = true;
+      $('invite-hint').hidden = false;
+
+      const file = new File([blob], filename, { type: 'image/png' });
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        share.hidden = false;
+        share.onclick = () => navigator.share({ files: [file], title: 'Invitation — Familles OUATTARA & KANTÉ' }).catch(() => { /* partage annulé */ });
+      }
+    } catch (e) {
+      if (run !== inviteRun) return;
+      console.warn('Invitation non générée :', e.message);
+      status.textContent = 'Votre réponse est bien enregistrée, mais l’invitation n’a pas pu être créée sur cet appareil. Essayez avec un autre navigateur grâce à votre lien personnel.';
+    }
   }
 
   $('edit-again').addEventListener('click', () => {
@@ -208,9 +256,11 @@ document.addEventListener('DOMContentLoaded', async () => {
       const banner = $('edit-banner');
       banner.hidden = false;
       banner.innerHTML = 'Vous avez déjà répondu' + (mine.responded_at ? ' le ' + S.esc(new Date(mine.responded_at).toLocaleDateString('fr-FR', { timeZone: S.TIME_ZONE })) : '')
-        + '. Vous pouvez modifier votre réponse ci-dessous. <button type="button" class="btn btn-outline-dark btn-sm" id="new-person" style="margin-top:10px">Répondre pour une autre personne</button>';
+        + '. Vous pouvez modifier votre réponse ci-dessous. <a class="btn btn-dark btn-sm" id="banner-invite" style="margin-top:10px" hidden>Télécharger mon invitation</a> <button type="button" class="btn btn-outline-dark btn-sm" id="new-person" style="margin-top:10px">Répondre pour une autre personne</button>';
+      prepareInvite(mine);
       $('new-person').addEventListener('click', () => {
         editToken = null; form.reset(); setPresence(); setParty(1); banner.hidden = true; setBusy(false); hideError();
+        prepareInvite({ status: null });
         form.querySelectorAll('input[name="events"]').forEach((i) => { i.checked = true; });
         form.full_name.focus();
       });

@@ -7,7 +7,7 @@
  */
 import puppeteer from 'puppeteer-core';
 import assert from 'node:assert/strict';
-import { mkdirSync, readdirSync, readFileSync, rmSync } from 'node:fs';
+import { mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { startServer } from './dev-server.mjs';
@@ -25,8 +25,8 @@ const IPHONE = { width: 390, height: 844, deviceScaleFactor: 2, isMobile: true, 
 const results = [];
 const problems = [];
 
-async function newPage(viewport = IPHONE) {
-  const ctx = await browser.createBrowserContext({ downloadBehavior: { policy: 'allow', downloadPath: downloads } });
+async function newPage(viewport = IPHONE, downloadPath = downloads) {
+  const ctx = await browser.createBrowserContext({ downloadBehavior: { policy: 'allow', downloadPath } });
   const page = await ctx.newPage();
   await page.setViewport(viewport);
   page.on('console', (m) => { if (m.type() === 'error') problems.push(`[console] ${page.url()} : ${m.text()}`); });
@@ -364,6 +364,93 @@ await step('Horodatages à l’heure d’Abidjan sur un appareil réglé sur un 
   const inAbidjan = new Date(saved).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', timeZone: 'Africa/Abidjan' });
   assert.ok((await text(p, '#saved-at')).endsWith(`à ${inAbidjan} (heure d’Abidjan)`), await text(p, '#saved-at'));
   await p.browserContext().close();
+});
+
+await step('Invitation : téléchargeable après un « Oui », jamais après un « Non »', async () => {
+  const dir = path.join(shots, 'invitation');
+  mkdirSync(dir, { recursive: true });
+  const p = await newPage(IPHONE, dir);
+  await p.goto(BASE + '/rsvp.html', { waitUntil: 'networkidle0' });
+  await p.type('#full_name', 'Aïcha Bakayoko');
+  await p.type('#phone', '07 66 66 66 66');
+  await tap(p, 'input[name="category"][value="famille_epoux"]');
+  await tap(p, 'input[name="status"][value="yes"]');
+  await tap(p, '[data-step="1"]');
+  await tap(p, '#submit-btn');
+  await p.waitForSelector('#invite-download:not([hidden])', { timeout: 8000 });
+
+  await p.waitForFunction(() => document.getElementById('invite-preview').naturalWidth > 0);
+  assert.equal(await p.$eval('#invite-preview', (i) => i.naturalWidth), 1080);
+  await sleep(400);
+  await shot(p, '16-rsvp-invitation-mobile', true);
+
+  await tap(p, '#invite-download');
+  const name = 'invitation-ouattara-kante-aicha-bakayoko.png';
+  for (let i = 0; i < 30 && !readdirSync(dir).includes(name); i++) await sleep(200);
+  const png = readFileSync(path.join(dir, name));
+  assert.equal(png.subarray(1, 4).toString(), 'PNG');
+  assert.equal(png.readUInt32BE(16), 1080);
+
+  // Un nom très long et sans espace reste entièrement dessiné, sans erreur.
+  const long = await p.evaluate(async () => {
+    const info = await window.Site.getPublicInfo();
+    const { blob } = await window.Invitation.create({ full_name: 'Marie-Françoise-Clémentine-Bernadette-Assétou-Fatoumata-Ouattara-Diabaté de la Grande Famille', party_size: 20, events: info.events.map((e) => e.key) }, info.events);
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result.split(',')[1]);
+      reader.readAsDataURL(blob);
+    });
+  });
+  const longPng = Buffer.from(long, 'base64');
+  assert.equal(longPng.readUInt32BE(16), 1080);
+  writeFileSync(path.join(shots, '17-invitation-nom-long.png'), longPng);
+
+  // Retour plus tard avec le même appareil : le bouton est disponible sans renvoyer le formulaire.
+  await p.goto(BASE + '/rsvp.html', { waitUntil: 'networkidle0' });
+  await p.waitForSelector('#banner-invite:not([hidden])', { timeout: 8000 });
+  await shot(p, '18-rsvp-retour-invitation-mobile');
+
+  // Changement pour « Non » : plus aucune invitation proposée.
+  await tap(p, 'input[name="status"][value="no"]');
+  await tap(p, '#submit-btn');
+  await p.waitForSelector('#thanks:not([hidden])', { timeout: 5000 });
+  assert.equal(await visible(p, '#invite-box'), false);
+  assert.equal(await p.$eval('#banner-invite', (a) => a.hidden), true);
+  await p.browserContext().close();
+});
+
+await step('Accueil : rien ne déborde, du petit téléphone à l’ordinateur', async () => {
+  const sizes = [
+    ['19-accueil-petit-mobile', { width: 360, height: 640, deviceScaleFactor: 2, isMobile: true, hasTouch: true }],
+    ['20-accueil-mobile', IPHONE],
+    ['21-accueil-ordinateur', { width: 1440, height: 900 }],
+  ];
+  for (const [name, viewport] of sizes) {
+    const p = await newPage(viewport);
+    await p.goto(BASE + '/', { waitUntil: 'networkidle0' });
+    await p.evaluate(() => document.fonts.ready);
+    const overflow = await p.evaluate(() => [...document.querySelectorAll('main *')].filter((el) => {
+      const r = el.getBoundingClientRect();
+      return r.width > 0 && (r.left < -1 || r.right > innerWidth + 1);
+    }).map((el) => el.className || el.tagName));
+    assert.deepEqual(overflow, [], name);
+    const inFrame = await p.evaluate(() => {
+      const f = document.querySelector('.hero-frame').getBoundingClientRect();
+      return [...document.querySelectorAll('.hero .name')].every((n) => {
+        const range = document.createRange();
+        range.selectNodeContents(n);
+        const r = range.getBoundingClientRect();
+        return r.left >= f.left && r.right <= f.right;
+      });
+    });
+    assert.ok(inFrame, 'les noms restent dans le cadre : ' + name);
+    await sleep(1600);
+    await shot(p, name);
+    await p.evaluate(() => document.querySelectorAll('.fade-in').forEach((e) => { e.style.transition = 'none'; e.classList.add('visible'); }));
+    await sleep(100);
+    await shot(p, name + '-complet', true);
+    await p.browserContext().close();
+  }
 });
 
 await browser.close();
