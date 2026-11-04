@@ -1,0 +1,19 @@
+# Maintient la base Supabase active (les projets gratuits se mettent en pause
+# après environ une semaine sans activité). Exécution gratuite sur GitHub.
+# Secrets à créer dans GitHub > Settings > Secrets and variables > Actions :
+#   SUPABASE_URL, SUPABASE_ANON_KEY
+name: Maintien de la base active
+on:
+  schedule:
+    - cron: '17 6 * * 1,4'   # lundi et jeudi, 6h17 UTC
+  workflow_dispatch:
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Appel léger de la base
+        run: |
+          curl -sf -X POST "${{ secrets.SUPABASE_URL }}/rest/v1/rpc/get_public_info" \
+            -H "apikey: ${{ secrets.SUPABASE_ANON_KEY }}" \
+            -H "Content-Type: application/json" -d '{}' > /dev/null
+          echo "Base Supabase active."

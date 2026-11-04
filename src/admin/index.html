@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<meta name="referrer" content="no-referrer">
+<meta name="theme-color" content="#101B3D">
+<title>Espace organisateurs — Familles OUATTARA &amp; KANTÉ</title>
+<link rel="icon" href="../assets/img/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../assets/css/style.css">
+<link rel="stylesheet" href="../assets/css/admin.css">
+<script src="../assets/js/config.js"></script>
+<script src="../assets/vendor/supabase.js" defer></script>
+<script src="../assets/js/xlsx-lite.js" defer></script>
+<script src="../assets/js/admin.js" defer></script>
+</head>
+<body class="admin">
+
+<!-- ================= CONNEXION ================= -->
+<section class="login-screen" id="login-view" hidden>
+  <div class="pattern" aria-hidden="true"></div>
+  <div class="login-card">
+    <div class="brand">
+      <div class="monogram-mark" aria-hidden="true">O<i>&amp;</i>K</div>
+      <h1>Espace organisateurs</h1>
+      <p>Accès réservé</p>
+    </div>
+    <form class="card" id="login-form" novalidate>
+      <div class="field">
+        <label for="email">Adresse e-mail</label>
+        <input class="input" id="email" type="email" autocomplete="username" required>
+      </div>
+      <div class="field">
+        <label for="password">Mot de passe</label>
+        <input class="input" id="password" type="password" autocomplete="current-password" required>
+      </div>
+      <div class="alert-box" id="login-error" role="alert" hidden></div>
+      <button class="btn btn-primary btn-block" type="submit" id="login-btn" style="background:var(--night);color:var(--yellow);border-color:var(--night)">Se connecter</button>
+      <p class="privacy"><a href="../index.html">← Retour au site</a></p>
+    </form>
+  </div>
+</section>
+
+<!-- ================= APPLICATION ================= -->
+<div id="app-view" hidden>
+  <header class="admin-bar">
+    <div class="container">
+      <div class="title">Familles OUATTARA &amp; KANTÉ<small id="who">Espace organisateurs</small></div>
+      <button class="icon-btn" id="refresh-btn" title="Actualiser"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4v7h-7"/></svg><span class="lbl">Actualiser</span></button>
+      <button class="icon-btn" id="logout-btn" title="Se déconnecter"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 4h4v16h-4M10 8l-4 4 4 4M6 12h10"/></svg><span class="lbl">Déconnexion</span></button>
+    </div>
+  </header>
+  <nav class="tabs" role="tablist" aria-label="Sections">
+    <div class="container">
+      <button role="tab" aria-selected="true" data-tab="dashboard">Tableau de bord</button>
+      <button role="tab" aria-selected="false" data-tab="guests">Invités</button>
+      <button role="tab" aria-selected="false" data-tab="events">Programme</button>
+      <button role="tab" aria-selected="false" data-tab="settings">Réglages</button>
+    </div>
+  </nav>
+
+  <main class="admin-main container">
+    <div class="alert-box" id="app-error" role="alert" hidden></div>
+
+    <!-- Tableau de bord -->
+    <section class="panel" id="panel-dashboard" role="tabpanel">
+      <h2 class="h2">Tableau de bord</h2>
+      <div class="kpis" id="kpis"></div>
+      <div class="box">
+        <h3>Réponses reçues sur les invitations prévues</h3>
+        <div class="progress"><span id="progress-bar" style="width:0"></span></div>
+        <div class="progress-legend"><span id="progress-left"></span><span id="progress-right"></span></div>
+      </div>
+      <div class="box"><h3>Personnes attendues par événement</h3><div class="bars" id="chart-events"></div></div>
+      <div class="grid-2" style="margin-top:14px">
+        <div class="box">
+          <h3>Présences et absences par catégorie</h3>
+          <div class="bars" id="chart-categories"></div>
+          <div class="legend"><span><i class="yes"></i>Présents (réponses)</span><span><i class="no"></i>Absents (réponses)</span></div>
+        </div>
+        <div class="box"><h3>Personnes attendues par catégorie</h3><div class="bars" id="chart-people"></div></div>
+      </div>
+      <div class="box"><h3>Réponses reçues au fil du temps</h3><div id="chart-timeline"></div></div>
+      <p class="stamp" id="stamp"></p>
+    </section>
+
+    <!-- Invités -->
+    <section class="panel" id="panel-guests" role="tabpanel" hidden>
+      <h2 class="h2">Invités</h2>
+      <div class="toolbar">
+        <input class="input search" id="q" type="search" placeholder="Rechercher un nom ou un numéro…" aria-label="Rechercher">
+        <select class="select" id="f-category" aria-label="Filtrer par catégorie"></select>
+        <select class="select" id="f-status" aria-label="Filtrer par réponse">
+          <option value="">Toutes les réponses</option>
+          <option value="yes">Présents</option>
+          <option value="no">Absents</option>
+          <option value="pending">En attente</option>
+        </select>
+      </div>
+      <div class="actions-row">
+        <button class="btn btn-dark btn-sm" id="add-btn">+ Ajouter un invité</button>
+        <button class="btn btn-outline-dark btn-sm" id="csv-btn">Export CSV</button>
+        <button class="btn btn-outline-dark btn-sm" id="xlsx-btn">Export Excel</button>
+        <span class="count" id="count"></span>
+      </div>
+      <table class="table">
+        <thead><tr><th>Nom et prénoms</th><th>Téléphone</th><th>Catégorie</th><th>Réponse</th><th>Pers.</th><th>Événements</th><th>Répondu le</th><th></th></tr></thead>
+        <tbody id="rows"></tbody>
+      </table>
+    </section>
+
+    <!-- Programme -->
+    <section class="panel" id="panel-events" role="tabpanel" hidden>
+      <h2 class="h2">Programme</h2>
+      <p class="muted">Ces informations s’affichent immédiatement sur le site, sans redéploiement. Laissez un champ vide pour afficher « À confirmer ». Cochez « Confirmation ouverte » pour permettre aux invités de confirmer leur présence à cet événement.</p>
+      <div id="event-forms"></div>
+    </section>
+
+    <!-- Réglages -->
+    <section class="panel" id="panel-settings" role="tabpanel" hidden>
+      <h2 class="h2">Réglages</h2>
+      <form class="event-form" id="settings-form">
+        <div class="form-grid two">
+          <div class="field">
+            <label for="s-planned">Nombre d’invitations prévues</label>
+            <input class="input" id="s-planned" type="number" min="0" max="100000" inputmode="numeric">
+            <p class="hint">Sert à calculer les personnes en attente. Ce n’est pas une limite : les réponses restent acceptées au-delà.</p>
+          </div>
+          <div class="field">
+            <label for="s-deadline">Date limite de réponse (facultatif)</label>
+            <input class="input" id="s-deadline" type="date">
+          </div>
+        </div>
+        <label class="check"><input type="checkbox" id="s-open"> Les confirmations sont ouvertes aux invités</label>
+        <p style="margin-top:16px"><button class="btn btn-dark btn-sm" type="submit">Enregistrer les réglages</button></p>
+      </form>
+      <div class="box">
+        <h3>Sauvegarde</h3>
+        <p class="muted">Exportez régulièrement la liste depuis l’onglet « Invités » (CSV ou Excel) et conservez le fichier en lieu sûr. La base Supabase est par ailleurs centralisée et persistante.</p>
+      </div>
+    </section>
+  </main>
+</div>
+
+<!-- Fenêtre : ajout / modification d'un invité -->
+<dialog id="guest-dlg" aria-labelledby="guest-dlg-title">
+  <form id="guest-form" novalidate>
+    <div class="dlg-head"><h2 id="guest-dlg-title">Invité</h2><button type="button" data-close aria-label="Fermer">×</button></div>
+    <div class="dlg-body">
+      <div class="form-grid">
+        <div class="field"><label for="g-name">Nom et prénoms</label><input class="input" id="g-name" required maxlength="120"></div>
+        <div class="form-grid two">
+          <div class="field"><label for="g-phone">Téléphone WhatsApp</label><input class="input" id="g-phone" type="tel" required maxlength="30"></div>
+          <div class="field"><label for="g-category">Catégorie</label><select class="select" id="g-category"></select></div>
+        </div>
+        <div class="form-grid two">
+          <div class="field"><label for="g-status">Réponse</label>
+            <select class="select" id="g-status"><option value="pending">En attente</option><option value="yes">Présent(e)</option><option value="no">Absent(e)</option></select></div>
+          <div class="field"><label for="g-party">Nombre de personnes</label><input class="input" id="g-party" type="number" min="1" max="20" value="1"></div>
+        </div>
+        <div class="field" id="g-yes-only"><label for="g-companions">Accompagnants</label><textarea class="textarea" id="g-companions" maxlength="1000"></textarea></div>
+        <div class="field" id="g-events-wrap"><span class="label">Événements</span><div id="g-events" class="flags" style="display:flex;gap:16px;flex-wrap:wrap"></div></div>
+      </div>
+      <div class="alert-box" id="guest-error" role="alert" hidden></div>
+    </div>
+    <div class="dlg-foot">
+      <button type="button" class="btn btn-outline-dark btn-sm" data-close>Annuler</button>
+      <button type="submit" class="btn btn-dark btn-sm" id="guest-save">Enregistrer</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- Fenêtre : confirmation de suppression -->
+<dialog id="confirm-dlg" aria-labelledby="confirm-title">
+  <div class="dlg-head"><h2 id="confirm-title">Supprimer ?</h2><button type="button" data-close aria-label="Fermer">×</button></div>
+  <div class="dlg-body"><p id="confirm-text"></p></div>
+  <div class="dlg-foot">
+    <button type="button" class="btn btn-outline-dark btn-sm" data-close>Annuler</button>
+    <button type="button" class="btn btn-dark btn-sm" id="confirm-yes">Supprimer définitivement</button>
+  </div>
+</dialog>
+</body>
+</html>

@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="fr" class="no-js">
+<head>
+<!--#include partials/head.html -->
+<title>Confirmer ma présence — Familles OUATTARA &amp; KANTÉ</title>
+<meta name="description" content="Confirmez votre présence au mariage des familles OUATTARA &amp; KANTÉ en moins d’une minute.">
+<meta property="og:title" content="Confirmer ma présence — Familles OUATTARA & KANTÉ">
+<meta property="og:description" content="Merci de nous indiquer si vous serez présent(e) : cela ne prend qu’une minute.">
+<meta property="og:url" content="%%SITE_URL%%/rsvp.html">
+<link rel="canonical" href="%%SITE_URL%%/rsvp.html">
+<meta name="referrer" content="no-referrer">
+<script src="assets/js/rsvp.js" defer></script>
+</head>
+<body data-page="rsvp">
+<!--#include partials/header.html -->
+
+<main id="contenu">
+  <section class="page-hero">
+    <div class="pattern" aria-hidden="true"></div>
+    <div class="container">
+      <p class="eyebrow">Réponse souhaitée</p>
+      <h1>Confirmer ma présence</h1>
+      <p>Quelques informations suffisent. Votre réponse aide les familles à vous accueillir dans les meilleures conditions.</p>
+    </div>
+  </section>
+
+  <section class="section" style="padding-top:8px">
+    <div class="container form-wrap">
+      <div class="card" id="rsvp-card">
+
+        <div class="notice" id="edit-banner" hidden>Vous modifiez votre réponse. Mettez à jour les informations puis enregistrez.</div>
+        <div class="notice alert" id="closed-banner" hidden>Les confirmations sont actuellement fermées. Merci de contacter directement les familles.</div>
+
+        <form id="rsvp-form" novalidate>
+          <fieldset class="step">
+            <legend class="step-title"><span class="num">1</span>Vos informations</legend>
+            <div class="field" data-field="full_name">
+              <label for="full_name">Nom et prénoms</label>
+              <input class="input" id="full_name" name="full_name" type="text" autocomplete="name" maxlength="120" required placeholder="Ex. : Aminata Koné">
+              <p class="error-msg">Merci d’indiquer votre nom et vos prénoms.</p>
+            </div>
+            <div class="field" data-field="phone">
+              <label for="phone">Numéro WhatsApp</label>
+              <input class="input" id="phone" name="phone" type="tel" inputmode="tel" autocomplete="tel" maxlength="30" required placeholder="Ex. : 07 00 00 00 00">
+              <p class="hint">Indicatif facultatif pour la Côte d’Ivoire. Ce numéro reste strictement confidentiel.</p>
+              <p class="error-msg">Merci d’indiquer un numéro WhatsApp valide.</p>
+            </div>
+          </fieldset>
+
+          <fieldset class="step" data-field="category">
+            <legend class="step-title"><span class="num">2</span>Vous êtes</legend>
+            <div class="choices" id="category-choices"></div>
+            <p class="error-msg">Merci de choisir votre catégorie d’invité.</p>
+          </fieldset>
+
+          <fieldset class="step" data-field="status">
+            <legend class="step-title"><span class="num">3</span>Votre réponse</legend>
+            <div class="choices cols-2">
+              <label class="choice big"><input type="radio" name="status" value="yes"><span class="box"><span class="tick"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M3 8.5 6.5 12 13 4.5"/></svg></span>Oui, je serai présent(e)</span></label>
+              <label class="choice big"><input type="radio" name="status" value="no"><span class="box"><span class="tick"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M3 8.5 6.5 12 13 4.5"/></svg></span>Non, je ne pourrai pas être présent(e)</span></label>
+            </div>
+            <p class="error-msg">Merci d’indiquer si vous serez présent(e).</p>
+          </fieldset>
+
+          <div class="reveal-block" id="yes-block" hidden>
+            <fieldset class="step" data-field="party_size">
+              <legend class="step-title"><span class="num">4</span>Votre venue</legend>
+              <span class="label" id="party-label">Nombre total de personnes (vous compris)</span>
+              <div class="stepper" role="group" aria-labelledby="party-label">
+                <button type="button" data-step="-1" aria-label="Retirer une personne">−</button>
+                <input id="party_size" name="party_size" type="number" inputmode="numeric" min="1" max="20" value="1" aria-labelledby="party-label">
+                <button type="button" data-step="1" aria-label="Ajouter une personne">+</button>
+              </div>
+              <p class="error-msg">Le nombre de personnes doit être compris entre 1 et 20.</p>
+            </fieldset>
+
+            <div class="field reveal-block" id="companions-block" data-field="companions" hidden>
+              <label for="companions">Nom de vos accompagnants</label>
+              <textarea class="textarea" id="companions" name="companions" maxlength="1000" placeholder="Un nom par ligne"></textarea>
+              <p class="hint">Facultatif, mais utile pour l’organisation.</p>
+            </div>
+
+            <fieldset class="step" data-field="events" id="events-step">
+              <legend class="step-title"><span class="num">5</span>Vous serez présent(e) à</legend>
+              <div class="choices" id="event-choices"></div>
+              <p class="hint" id="events-hint"></p>
+              <p class="error-msg">Merci de choisir au moins un événement.</p>
+            </fieldset>
+          </div>
+
+          <div class="hp" aria-hidden="true">
+            <label for="website">Ne pas remplir ce champ</label>
+            <input id="website" name="website" type="text" tabindex="-1" autocomplete="off">
+          </div>
+
+          <div class="notice alert" id="form-error" role="alert" hidden></div>
+
+          <div class="form-actions">
+            <button class="btn btn-primary btn-block" type="submit" id="submit-btn">Envoyer ma réponse</button>
+          </div>
+          <p class="privacy">Vos informations sont uniquement visibles par les organisateurs du mariage.</p>
+        </form>
+
+        <!-- Écran de remerciement (affiché uniquement après enregistrement confirmé par la base) -->
+        <div class="thanks" id="thanks" hidden tabindex="-1">
+          <div class="seal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12.5 9 17.5 20 6.5"/></svg></div>
+          <h2 id="thanks-title">Merci pour votre réponse !</h2>
+          <p class="msg" id="thanks-msg"></p>
+          <span class="saved-ok"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M4 12.5 9 17.5 20 6.5"/></svg><span id="saved-at">Réponse enregistrée</span></span>
+          <dl class="recap" id="recap"></dl>
+
+          <div class="edit-link-box">
+            <p><strong>Votre lien personnel de modification.</strong> Gardez-le : il vous permettra de changer votre réponse plus tard. Ne le partagez pas.</p>
+            <div class="row">
+              <button type="button" class="btn btn-dark btn-sm" id="copy-link">Copier mon lien</button>
+              <a class="btn btn-outline-dark btn-sm" id="wa-link" href="#" target="_blank" rel="noopener">M’envoyer le lien sur WhatsApp</a>
+            </div>
+          </div>
+          <p style="margin-top:18px"><button type="button" class="btn btn-outline-dark btn-sm" id="edit-again">Modifier ma réponse</button></p>
+          <p><a href="programme.html" style="color:var(--night);font-weight:600">Voir le programme</a></p>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!--#include partials/footer.html -->
+</body>
+</html>
