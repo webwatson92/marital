@@ -3,7 +3,7 @@
 <head>
 <!--#include partials/head.html -->
 <title>Familles OUATTARA &amp; KANTÉ — Deux familles, une union, une célébration</title>
-<meta name="description" content="Les familles OUATTARA &amp; KANTÉ ont la joie de vous convier à la célébration de leur union : cérémonie religieuse le 24 décembre 2026 à Daloa, réception le 3 janvier 2027 à Yopougon, Abidjan.">
+<meta name="description" content="Les familles OUATTARA &amp; KANTÉ ont la joie de vous convier à la célébration de leur union : mariage religieux du 21 au 24 décembre 2026 à Daloa, réception le 3 janvier 2027 à Yopougon, Abidjan.">
 <meta property="og:title" content="Familles OUATTARA & KANTÉ">
 <meta property="og:description" content="Deux familles, une union, une célébration. Découvrez le programme et confirmez votre présence.">
 <meta property="og:url" content="%%SITE_URL%%/">
@@ -32,7 +32,7 @@
       <p class="tagline fade-in"><span class="nb">« Deux familles, une union,</span> <span class="nb">une célébration. »</span></p>
 
       <div class="hero-dates fade-in" id="hero-dates">
-        <div><b>24 décembre 2026</b><span>Daloa</span></div>
+        <div><b>21 – 24 décembre 2026</b><span>Daloa</span></div>
         <div><b>3 janvier 2027</b><span>Abidjan</span></div>
       </div>
 
@@ -53,7 +53,7 @@
       <p class="intro-lead fade-in">Avec une immense joie, les familles OUATTARA et KANTÉ vous convient à célébrer l’union de leurs enfants.</p>
       <p class="intro-text fade-in">
         C’est avec bonheur et reconnaissance que les familles OUATTARA et KANTÉ vous invitent à partager
-        les moments forts de cette union : la cérémonie religieuse à Daloa, puis la réception à Yopougon, Abidjan.
+        les moments forts de cette union : le mariage religieux à Daloa, puis la réception à Yopougon, Abidjan.
         Votre présence à nos côtés sera notre plus belle joie.
       </p>
     </div>
@@ -66,11 +66,23 @@
         <p class="eyebrow">À retenir</p>
         <h2 class="section-title" id="dates">Les dates <em>importantes</em></h2>
       </div>
-      <div class="date-cards" id="date-cards">
-        <!-- Rempli depuis la base de données (version de secours ci-dessous) -->
-        <a class="date-card" href="programme.html#evt-ceremonie"><h3>Cérémonie religieuse</h3><div class="when">Jeudi 24 décembre 2026</div><div class="where">Daloa</div></a>
-        <a class="date-card" href="programme.html#evt-preche"><h3>Prêche</h3><div class="when"><span class="tbc">À confirmer</span></div><div class="where">Mosquée du Nouveau Quartier, Yopougon</div></a>
-        <a class="date-card" href="programme.html#evt-reception"><h3>Réception</h3><div class="when">Dimanche 3 janvier 2027</div><div class="where">Yopougon Nouveau Quartier, Abidjan</div></a>
+      <div class="date-groups" id="date-cards" style="--n:5">
+        <!-- Rempli depuis la base de données (version de secours ci-dessous), rangé par ville -->
+        <div class="date-group" style="--cols:3">
+          <p class="date-group-head"><b>À Daloa</b><span>Du 21 au 24 décembre 2026</span></p>
+          <div class="date-cards">
+            <a class="date-card" href="programme.html#evt-chambre"><h3>Mise en chambre de la mariée</h3><div class="when">Lundi 21 décembre 2026</div><div class="where">Domicile de la mariée, Daloa</div></a>
+            <a class="date-card" href="programme.html#evt-danse"><h3>Danse de réjouissance</h3><div class="when">Mercredi 23 décembre 2026</div><div class="where">Domicile de la mariée, Daloa</div></a>
+            <a class="date-card" href="programme.html#evt-ceremonie"><h3>Mariage religieux</h3><div class="when">Jeudi 24 décembre 2026</div><div class="where">Grande cour familiale, Daloa</div></a>
+          </div>
+        </div>
+        <div class="date-group" style="--cols:2">
+          <p class="date-group-head"><b>À Abidjan</b><span>3 janvier 2027 · Yopougon</span></p>
+          <div class="date-cards">
+            <a class="date-card" href="programme.html#evt-preche"><h3>Prêche</h3><div class="when"><span class="tbc">À confirmer</span></div><div class="where">Mosquée du Nouveau Quartier, Yopougon</div></a>
+            <a class="date-card" href="programme.html#evt-reception"><h3>Réception</h3><div class="when">Dimanche 3 janvier 2027</div><div class="where">Yopougon Nouveau Quartier, Abidjan</div></a>
+          </div>
+        </div>
       </div>
       <p class="dates-more"><a class="btn btn-ghost" href="programme.html">Voir le programme détaillé</a></p>
     </div>
@@ -79,8 +91,8 @@
   <!-- Compte à rebours, réponse et partage -->
   <section class="section section-ivory section-closing" aria-labelledby="reponse">
     <div class="container">
-      <p class="countdown-label fade-in">Avant la réception</p>
-      <div class="countdown fade-in" id="countdown" role="timer" aria-live="off" aria-label="Compte à rebours avant la réception">
+      <p class="countdown-label fade-in" id="countdown-label">Avant le mariage religieux</p>
+      <div class="countdown fade-in" id="countdown" role="timer" aria-live="off" aria-label="Compte à rebours avant le mariage religieux">
         <div><b data-cd="d">–</b><span>Jours</span></div>
         <div><b data-cd="h">–</b><span>Heures</span></div>
         <div><b data-cd="m">–</b><span>Minutes</span></div>

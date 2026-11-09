@@ -58,8 +58,14 @@ await step('Accueil : titre, compte à rebours, boutons', async () => {
   const btns = await g.$$eval('.hero-actions a', (a) => a.map((x) => x.textContent.trim().toUpperCase()));
   assert.deepEqual(btns, ['CONFIRMER MA PRÉSENCE', 'DÉCOUVRIR LE PROGRAMME']);
   const cards = await g.$$eval('#date-cards .date-card', (c) => c.map((x) => x.textContent));
-  assert.equal(cards.length, 3);
-  assert.match(cards[1], /Prêche.*À confirmer/s);
+  assert.equal(cards.length, 5);
+  assert.match(cards[0], /Mise en chambre de la mariée.*Lundi 21 décembre 2026/s);
+  assert.match(cards[2], /Mariage religieux.*Jeudi 24 décembre 2026/s);
+  assert.match(cards[3], /Prêche.*À confirmer/s);
+  // Chaque événement est rangé sous sa ville
+  const villes = await g.$$eval('.date-group', (gs) => gs.map((x) => [x.querySelector('.date-group-head').textContent, x.querySelectorAll('.date-card').length]));
+  assert.deepEqual(villes, [['À DaloaDu 21 au 24 décembre 2026', 3], ['À Abidjan3 janvier 2027 · Yopougon', 2]]);
+  assert.match(await text(g, '#countdown-label'), /Avant le mariage religieux/);
   const og = await g.$eval('meta[property="og:image"]', (m) => m.content);
   assert.equal(og, BASE + '/assets/img/og-image.jpg');
   await shot(g, '01-accueil-mobile');
@@ -67,16 +73,30 @@ await step('Accueil : titre, compte à rebours, boutons', async () => {
   await shot(g, '02-accueil-mobile-complet', true);
 });
 
-await step('Programme : 3 cartes, rien d’inventé', async () => {
+await step('Programme : 5 cartes conformes au carton, rien d’inventé', async () => {
   await g.goto(BASE + '/programme.html', { waitUntil: 'networkidle0' });
   const cards = await g.$$eval('.event-card', (c) => c.map((x) => x.innerText));
-  assert.equal(cards.length, 3);
-  assert.match(cards[0], /Jeudi 24 décembre 2026/);
-  assert.match(cards[0], /Daloa/);
-  assert.match(cards[1], /Mosquée du Nouveau Quartier/);
-  assert.match(cards[1], /Date\s+À CONFIRMER/i);
-  assert.match(cards[2], /Dimanche 3 janvier 2027/);
-  for (const c of cards) assert.match(c, /Heure\s+À CONFIRMER/i, 'aucun horaire inventé');
+  assert.equal(cards.length, 5);
+  assert.match(cards[0], /Mise en chambre de la mariée/);
+  assert.match(cards[0], /Lundi 21 décembre 2026/);
+  assert.match(cards[0], /À partir de 14 h/);
+  assert.match(cards[0], /Médico-Scolaire/);
+  assert.match(cards[1], /Danse de réjouissance/);
+  assert.match(cards[1], /Mercredi 23 décembre 2026/);
+  assert.match(cards[2], /Mariage religieux/);
+  assert.match(cards[2], /Jeudi 24 décembre 2026/);
+  assert.match(cards[2], /8 h 00/);
+  assert.match(cards[2], /Djoulabougou/);
+  assert.match(cards[2], /Fouroussiri/);
+  assert.match(cards[3], /Mosquée du Nouveau Quartier/);
+  assert.match(cards[3], /Date\s+À CONFIRMER/i);
+  assert.match(cards[4], /Dimanche 3 janvier 2027/);
+  const villes = await g.$$eval('.city-group', (gs) => gs.map((x) => [x.querySelector('.city-head').innerText.replace(/\s+/g, ' '), [...x.querySelectorAll('.event-card')].map((c) => c.id)]));
+  assert.deepEqual(villes, [
+    ['À Daloa DU 21 AU 24 DÉCEMBRE 2026', ['evt-chambre', 'evt-danse', 'evt-ceremonie']],
+    ['À Abidjan 3 JANVIER 2027 · YOPOUGON', ['evt-preche', 'evt-reception']],
+  ]);
+  for (const c of cards.slice(3)) assert.match(c, /Heure\s+À CONFIRMER/i, 'aucun horaire inventé');
   await g.evaluate(() => document.querySelectorAll('.fade-in').forEach((e) => e.classList.add('visible')));
   await shot(g, '03-programme-mobile', true);
 });
@@ -97,12 +117,12 @@ await step('RSVP « Oui » à 3 personnes, double clic : une seule réponse enre
   await tap(g, 'input[name="status"][value="yes"]');
   assert.ok(await visible(g, '#yes-block'));
   const evs = await g.$$eval('input[name="events"]', (i) => i.map((x) => x.value));
-  assert.deepEqual(evs, ['ceremonie', 'reception'], 'prêche non proposé tant qu’il n’est pas ouvert');
+  assert.deepEqual(evs, ['chambre', 'danse', 'ceremonie', 'reception'], 'prêche non proposé tant qu’il n’est pas ouvert');
   assert.match(await text(g, '#events-hint'), /Prêche/);
   await tap(g, '[data-step="1"]'); await tap(g, '[data-step="1"]');
   assert.ok(await visible(g, '#companions-block'));
   await g.type('#companions', 'Ibrahim Koné\nFatou Koné');
-  await tap(g, 'input[name="events"][value="ceremonie"]'); // décoche la cérémonie
+  await tap(g, 'input[name="events"][value="ceremonie"]'); // décoche le mariage religieux
   await shot(g, '04-rsvp-formulaire-mobile', true);
   await Promise.all([tap(g, '#submit-btn'), tap(g, '#submit-btn').catch(() => {})]);
   await g.waitForSelector('#thanks:not([hidden])', { timeout: 5000 });
@@ -110,7 +130,7 @@ await step('RSVP « Oui » à 3 personnes, double clic : une seule réponse enre
   assert.equal(r.length, 1);
   assert.equal(r[0].status, 'yes');
   assert.equal(r[0].party_size, 3);
-  assert.deepEqual(r[0].events, ['reception']);
+  assert.deepEqual(r[0].events, ['chambre', 'danse', 'reception']);
   assert.match(r[0].companions, /Ibrahim Koné/);
   assert.match(await text(g, '#thanks-title'), /Merci, Aminata Koné/);
   assert.match(await text(g, '#thanks-msg'), /seront heureuses de partager/);
@@ -281,7 +301,7 @@ await step('Admin : ouverture du prêche (date + heure) → visible côté invit
   assert.match(card, /16h00/);
   await p.goto(BASE + '/rsvp.html', { waitUntil: 'networkidle0' });
   const evs = await p.$$eval('input[name="events"]', (i) => i.map((x) => x.value));
-  assert.deepEqual(evs, ['ceremonie', 'preche', 'reception']);
+  assert.deepEqual(evs, ['chambre', 'danse', 'ceremonie', 'preche', 'reception']);
   await p.browserContext().close();
 });
 

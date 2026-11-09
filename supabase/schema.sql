@@ -31,7 +31,7 @@ insert into public.settings (id) values (1) on conflict (id) do nothing;
 
 -- Événements du programme (modifiables depuis l'espace administrateur)
 create table if not exists public.events (
-  key          text primary key check (key in ('ceremonie', 'preche', 'reception')),
+  key          text primary key,             -- clés autorisées : voir events_key_check ci-dessous
   sort_order   int  not null default 0,
   title        text not null check (char_length(title) between 2 and 80),
   event_date   date,                       -- null  => « À confirmer »
@@ -45,13 +45,26 @@ create table if not exists public.events (
   updated_at   timestamptz not null default now()
 );
 
--- Données de départ : UNIQUEMENT les informations confirmées par le cahier des charges.
+-- Clés d'événements autorisées. La contrainte est recréée à chaque exécution :
+-- le script reste ré-exécutable sur une base existante, sans toucher aux données.
+alter table public.events drop constraint if exists events_key_check;
+alter table public.events add constraint events_key_check
+  check (key in ('chambre', 'danse', 'ceremonie', 'preche', 'reception'));
+
+-- Données de départ : UNIQUEMENT les informations confirmées par les familles.
+-- Daloa : programme du carton d'invitation « Mariage religieux » (21, 23 et 24 décembre 2026).
+-- Une base déjà en service se met à jour avec supabase/maj-programme-daloa.sql.
 insert into public.events (key, sort_order, title, event_date, time_label, venue, address, maps_url, note, rsvp_enabled, visible) values
-  ('ceremonie', 1, 'Cérémonie religieuse', '2026-12-24', null, 'Daloa', null, null,
-     'Le lieu précis sera communiqué prochainement.', true, true),
-  ('preche',    2, 'Prêche', null, null, 'Mosquée du Nouveau Quartier, Yopougon', null, null,
+  ('chambre',   1, 'Mise en chambre de la mariée', '2026-12-21', 'À partir de 14 h', 'Domicile de la mariée, Daloa',
+     'Quartier Médico-Scolaire, près de l''Institut d''hygiène et du dispensaire urbain', null, null, true, true),
+  ('danse',     2, 'Danse de réjouissance', '2026-12-23', 'À partir de 14 h', 'Domicile de la mariée, Daloa',
+     'Quartier Médico-Scolaire, près de l''Institut d''hygiène et du dispensaire urbain', null, null, true, true),
+  ('ceremonie', 3, 'Mariage religieux', '2026-12-24', '8 h 00', 'Grande cour familiale, Daloa',
+     'Quartier Djoulabougou, non loin de l''établissement Djoulabougou', null,
+     'Fouroussiri et attachement des colas, suivis d''une réception au domicile de la mariée (quartier Médico-Scolaire).', true, true),
+  ('preche',    4, 'Prêche', null, null, 'Mosquée du Nouveau Quartier, Yopougon', null, null,
      'La date et l''horaire seront communiqués prochainement.', false, true),
-  ('reception', 3, 'Réception', '2027-01-03', null, 'Yopougon Nouveau Quartier, Abidjan',
+  ('reception', 5, 'Réception', '2027-01-03', null, 'Yopougon Nouveau Quartier, Abidjan',
      'Terrain situé à environ 15 mètres de la mosquée', null, null, true, true)
 on conflict (key) do nothing;
 

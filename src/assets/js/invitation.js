@@ -249,15 +249,25 @@
     const people = data.partySize > 1 ? `POUR ${data.partySize} PERSONNES` : 'POUR 1 PERSONNE';
     spacedLine(people, sans(27, 600), YELLOW, 5, 38, 44);
 
-    data.events.forEach((event, i) => {
-      const numeral = ['I', 'II', 'III', 'IV', 'V'][i] || '';
-      if (paint) {
-        drawRule(ctx, y, LINE);
-        eventBlock(ctx, event, numeral, y, true);
+    // Événements rangés par ville : « À DALOA », puis « À ABIDJAN ».
+    let n = 0;
+    data.groups.forEach((group, gi) => {
+      if (group.label) {
+        if (gi > 0) y += 34;
+        spacedLine(group.label.toUpperCase(), serif(54, 600), YELLOW, 6, 62, 4);
+        if (group.sub) centered(group.sub, sans(26, 500), TEXT_SOFT, 36, 0);
+        y += 22;
       }
-      y += eventBlock(ctx, event, numeral, y, false);
+      for (const event of group.events) {
+        const numeral = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII'][n++] || '';
+        if (paint) {
+          drawRule(ctx, y, LINE);
+          eventBlock(ctx, event, numeral, y, true);
+        }
+        y += eventBlock(ctx, event, numeral, y, false);
+      }
     });
-    if (data.events.length) {
+    if (n) {
       if (paint) drawRule(ctx, y, LINE);
       y += 42;
     }
@@ -282,13 +292,17 @@
     const data = {
       name: guest.full_name,
       partySize: Number(guest.party_size) || 1,
-      events: chosen.map((e) => ({
-        title: e.title,
-        date: S.formatDate(e.event_date),
-        time: e.time_label,
-        venue: e.venue,
-        address: e.address,
-        note: e.note,
+      groups: S.groupByCity(chosen).map((g) => ({
+        label: g.label,
+        sub: g.sub,
+        events: g.items.map(({ e }) => ({
+          title: e.title,
+          date: S.formatDate(e.event_date),
+          time: e.time_label,
+          venue: e.venue,
+          address: e.address,
+          note: e.note,
+        })),
       })),
       site: new URL(S.siteUrl()).host,
     };

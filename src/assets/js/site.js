@@ -82,7 +82,9 @@
   // Programme de secours : affiché si la base est momentanément injoignable.
   // Il ne contient que les informations confirmées.
   const FALLBACK_EVENTS = [
-    { key: 'ceremonie', title: 'Cérémonie religieuse', event_date: '2026-12-24', time_label: null, venue: 'Daloa', address: null, maps_url: null, note: 'Le lieu précis sera communiqué prochainement.', rsvp_enabled: true },
+    { key: 'chambre', title: 'Mise en chambre de la mariée', event_date: '2026-12-21', time_label: 'À partir de 14 h', venue: 'Domicile de la mariée, Daloa', address: 'Quartier Médico-Scolaire, près de l’Institut d’hygiène et du dispensaire urbain', maps_url: null, note: null, rsvp_enabled: true },
+    { key: 'danse', title: 'Danse de réjouissance', event_date: '2026-12-23', time_label: 'À partir de 14 h', venue: 'Domicile de la mariée, Daloa', address: 'Quartier Médico-Scolaire, près de l’Institut d’hygiène et du dispensaire urbain', maps_url: null, note: null, rsvp_enabled: true },
+    { key: 'ceremonie', title: 'Mariage religieux', event_date: '2026-12-24', time_label: '8 h 00', venue: 'Grande cour familiale, Daloa', address: 'Quartier Djoulabougou, non loin de l’établissement Djoulabougou', maps_url: null, note: 'Fouroussiri et attachement des colas, suivis d’une réception au domicile de la mariée (quartier Médico-Scolaire).', rsvp_enabled: true },
     { key: 'preche', title: 'Prêche', event_date: null, time_label: null, venue: 'Mosquée du Nouveau Quartier, Yopougon', address: null, maps_url: null, note: 'La date et l’horaire seront communiqués prochainement.', rsvp_enabled: false },
     { key: 'reception', title: 'Réception', event_date: '2027-01-03', time_label: null, venue: 'Yopougon Nouveau Quartier, Abidjan', address: 'Terrain situé à environ 15 mètres de la mosquée', maps_url: null, note: null, rsvp_enabled: true },
   ];
@@ -115,8 +117,11 @@
       : '<span class="maps-pending">Itinéraire disponible dès que l’emplacement exact sera confirmé.</span>';
     return `
       <article class="event-card fade-in" id="evt-${esc(e.key)}">
-        <div class="event-num">${['I', 'II', 'III', 'IV'][i] || ''}</div>
-        <h2>${esc(e.title)}</h2>
+        <div class="event-head">
+          <div class="event-num">${['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII'][i] || ''}</div>
+          <h3>${esc(e.title)}</h3>
+        </div>
+        <div class="event-body">
         <dl class="event-meta">
           <div>${ICONS.calendar}<span><dt>Date</dt><dd>${date ? esc(date) : TBC}</dd></span></div>
           <div>${ICONS.clock}<span><dt>Heure</dt><dd>${e.time_label ? esc(e.time_label) : TBC}</dd></span></div>
@@ -125,6 +130,7 @@
         </dl>
         ${e.note ? `<p class="event-note">${esc(e.note)}</p>` : ''}
         <div class="event-actions">${maps}</div>
+        </div>
       </article>`;
   }
 
@@ -137,6 +143,68 @@
         <div class="when">${date ? esc(date) : TBC}</div>
         <div class="where">${esc(e.venue || 'Lieu à confirmer')}</div>
       </a>`;
+  }
+
+  /* ---------------- Villes ---------------- */
+  // Le mariage se déroule en deux temps : à Daloa d'abord, puis à Abidjan.
+  const CITIES = {
+    daloa: { name: 'Daloa', area: null },
+    abidjan: { name: 'Abidjan', area: 'Yopougon' },
+  };
+  const CITY_OF = { chambre: 'daloa', danse: 'daloa', ceremonie: 'daloa', preche: 'abidjan', reception: 'abidjan' };
+
+  // « 3 janvier 2027 », « Du 21 au 24 décembre 2026 »… calculé sur les seules dates connues.
+  function dateRange(isos) {
+    const ds = isos.filter(Boolean).sort();
+    if (!ds.length) return null;
+    const a = parseDate(ds[0]);
+    const b = parseDate(ds[ds.length - 1]);
+    const full = { day: 'numeric', month: 'long', year: 'numeric' };
+    const fmt = (d, o) => d.toLocaleDateString('fr-FR', o);
+    if (ds[0] === ds[ds.length - 1]) return fmt(a, full);
+    if (a.getFullYear() !== b.getFullYear()) return `Du ${fmt(a, full)} au ${fmt(b, full)}`;
+    if (a.getMonth() !== b.getMonth()) return `Du ${fmt(a, { day: 'numeric', month: 'long' })} au ${fmt(b, full)}`;
+    return `Du ${a.getDate()} au ${fmt(b, full)}`;
+  }
+
+  /**
+   * Regroupe les événements consécutifs d'une même ville, dans l'ordre du programme.
+   * Renvoie [{ id, name, label: 'À Daloa', sub: 'Du 21 au 24 décembre 2026', items: [{ e, i }] }] ;
+   * i est le rang de l'événement dans tout le programme (numérotation continue).
+   */
+  function groupByCity(events) {
+    const groups = [];
+    (events || []).forEach((e, i) => {
+      const id = CITY_OF[e.key] || null;
+      let g = groups[groups.length - 1];
+      if (!g || g.id !== id) { g = { id, items: [] }; groups.push(g); }
+      g.items.push({ e, i });
+    });
+    for (const g of groups) {
+      const city = CITIES[g.id];
+      g.name = city ? city.name : null;
+      g.label = city ? 'À ' + city.name : null;
+      g.sub = [dateRange(g.items.map((x) => x.e.event_date)), city && city.area].filter(Boolean).join(' · ');
+    }
+    return groups;
+  }
+
+  /* Programme complet, rangé par ville (page Programme) */
+  function programmeHtml(events) {
+    return groupByCity(events).map((g) => `
+      <section class="city-group"${g.id ? ` id="ville-${g.id}" aria-labelledby="titre-${g.id}"` : ''}>
+        ${g.label ? `<header class="city-head fade-in"><h2 id="titre-${g.id}">${esc(g.label)}</h2>${g.sub ? `<p>${esc(g.sub)}</p>` : ''}</header>` : ''}
+        ${g.items.map(({ e, i }) => eventCard(e, i)).join('')}
+      </section>`).join('');
+  }
+
+  /* Dates importantes, rangées par ville (page d'accueil) */
+  function dateGroupsHtml(events) {
+    return groupByCity(events).map((g) => `
+      <div class="date-group" style="--cols:${g.items.length}">
+        ${g.name ? `<p class="date-group-head"><b>${esc(g.label)}</b>${g.sub ? `<span>${esc(g.sub)}</span>` : ''}</p>` : ''}
+        <div class="date-cards">${g.items.map(({ e }) => dateCard(e)).join('')}</div>
+      </div>`).join('');
   }
 
   /* ---------------- Interface ---------------- */
@@ -203,6 +271,6 @@
 
   window.Site = {
     CFG, rpc, ApiError, ERRORS, TIME_ZONE, esc, formatDate, shortDate, parseDate, getPublicInfo, FALLBACK_EVENTS,
-    eventCard, dateCard, ICONS, toast, copyText, siteUrl, whatsappShareUrl, observeFadeIns, TBC,
+    eventCard, dateCard, groupByCity, programmeHtml, dateGroupsHtml, ICONS, toast, copyText, siteUrl, whatsappShareUrl, observeFadeIns, TBC,
   };
 })();

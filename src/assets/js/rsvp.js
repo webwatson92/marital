@@ -39,10 +39,13 @@ document.addEventListener('DOMContentLoaded', async () => {
   events = (info.events || []).filter((e) => e.rsvp_enabled);
   const later = (info.events || []).filter((e) => !e.rsvp_enabled);
 
-  $('event-choices').innerHTML = events.map((e) => {
-    const d = S.formatDate(e.event_date, { day: 'numeric', month: 'long', year: 'numeric' });
-    return `<label class="choice"><input type="checkbox" name="events" value="${S.esc(e.key)}" checked><span class="box">${TICK}<span>${S.esc(e.title)}<small>${d ? S.esc(d) : 'Date à confirmer'}${e.venue ? ' · ' + S.esc(e.venue) : ''}</small></span></span></label>`;
-  }).join('');
+  // Choix rangés par ville : « À Daloa » puis « À Abidjan ».
+  $('event-choices').innerHTML = S.groupByCity(events).map((g) =>
+    (g.label ? `<p class="choice-city"><b>${S.esc(g.label)}</b>${g.sub ? ' · ' + S.esc(g.sub) : ''}</p>` : '')
+    + g.items.map(({ e }) => {
+      const d = S.formatDate(e.event_date, { day: 'numeric', month: 'long', year: 'numeric' });
+      return `<label class="choice"><input type="checkbox" name="events" value="${S.esc(e.key)}" checked><span class="box">${TICK}<span>${S.esc(e.title)}<small>${d ? S.esc(d) : 'Date à confirmer'}${e.venue ? ' · ' + S.esc(e.venue) : ''}</small></span></span></label>`;
+    }).join('')).join('');
   $('events-hint').textContent = later.length
     ? later.map((e) => e.title).join(', ') + ' : la confirmation sera ouverte dès que les informations seront validées.'
     : '';

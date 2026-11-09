@@ -2,7 +2,12 @@
 // Lancer : npm test
 import { test, before } from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { createDb, rpc, callAs } from './db.mjs';
+
+const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 
 let db;
 const ADMIN = '11111111-1111-4111-8111-111111111111';
@@ -29,12 +34,33 @@ before(async () => {
 test('le programme public ne contient que les infos confirmées', async () => {
   const info = await rpc(db, guest, 'get_public_info');
   assert.equal(info.rsvp_open, true);
+  assert.deepEqual(info.events.map((e) => e.key), ['chambre', 'danse', 'ceremonie', 'preche', 'reception']);
   const byKey = Object.fromEntries(info.events.map((e) => [e.key, e]));
+  // Daloa : carton d'invitation « Mariage religieux »
+  assert.equal(byKey.chambre.event_date, '2026-12-21');
+  assert.equal(byKey.chambre.time_label, 'À partir de 14 h');
+  assert.equal(byKey.danse.event_date, '2026-12-23');
+  assert.equal(byKey.danse.time_label, 'À partir de 14 h');
+  assert.equal(byKey.ceremonie.title, 'Mariage religieux');
   assert.equal(byKey.ceremonie.event_date, '2026-12-24');
+  assert.equal(byKey.ceremonie.time_label, '8 h 00');
+  assert.match(byKey.ceremonie.address, /Djoulabougou/);
+  for (const k of ['chambre', 'danse', 'ceremonie']) assert.equal(byKey[k].rsvp_enabled, true, k);
+  // Abidjan : inchangé
   assert.equal(byKey.reception.event_date, '2027-01-03');
   assert.equal(byKey.preche.event_date, null, 'la date du prêche ne doit pas être supposée');
   assert.equal(byKey.preche.rsvp_enabled, false);
-  for (const e of info.events) assert.equal(e.time_label, null, 'aucun horaire inventé');
+  for (const k of ['preche', 'reception']) assert.equal(byKey[k].time_label, null, 'aucun horaire inventé');
+});
+
+test('le script de mise à jour donne le même programme qu’une installation neuve', async () => {
+  const cols = 'key, sort_order, title, event_date, time_label, venue, address, maps_url, note, rsvp_enabled, visible';
+  const fresh = (await db.query(`select ${cols} from public.events order by sort_order`)).rows;
+  const other = await createDb();
+  await other.exec(readFileSync(path.join(root, 'supabase/maj-programme-daloa.sql'), 'utf8'));
+  await other.exec(readFileSync(path.join(root, 'supabase/maj-programme-daloa.sql'), 'utf8')); // ré-exécutable
+  assert.deepEqual((await other.query(`select ${cols} from public.events order by sort_order`)).rows, fresh);
+  await other.close();
 });
 
 test('un visiteur ne peut lire aucune table directement', async () => {

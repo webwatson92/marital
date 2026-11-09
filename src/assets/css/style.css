@@ -233,7 +233,12 @@ body[data-page='accueil'] .site-header:not(.scrolled) .monogram { opacity: 0; vi
 
 /* Dates (accueil) : une liste gravée, sans cartes */
 .section-dates { background: var(--night); }
-.date-cards { display: grid; counter-reset: evt; border-top: 1px solid var(--line); }
+.date-groups { counter-reset: evt; } /* numérotation continue d'une ville à l'autre */
+.date-group + .date-group { margin-top: 48px; }
+.date-group-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 2px 16px; margin: 0 0 12px; }
+.date-group-head b { font-family: var(--serif); font-size: clamp(30px, 8vw, 36px); font-style: italic; font-weight: 500; line-height: 1.1; color: var(--yellow); }
+.date-group-head span { font-size: 11px; font-weight: 500; letter-spacing: .2em; text-transform: uppercase; color: var(--text-soft); }
+.date-cards { display: grid; border-top: 1px solid var(--line); }
 .date-card { position: relative; display: grid; grid-template-columns: 42px 1fr; padding: 26px 34px 26px 2px; color: var(--white); text-decoration: none; border-bottom: 1px solid var(--line-soft); counter-increment: evt; }
 .date-card::before { content: counter(evt, upper-roman); grid-row: 1 / 4; font-family: var(--serif); font-style: italic; font-size: 20px; line-height: 1.75; color: var(--yellow); }
 .date-card::after { content: '→'; position: absolute; top: 30px; right: 4px; color: var(--yellow); font-size: 18px; line-height: 1; }
@@ -242,16 +247,21 @@ body[data-page='accueil'] .site-header:not(.scrolled) .monogram { opacity: 0; vi
 .date-card .where { grid-column: 2; margin-top: 4px; color: var(--text-soft); font-size: 14px; }
 .date-card .tbc { font-size: 21px; }
 .date-card:hover h3 { color: var(--yellow); }
-@media (min-width: 760px) {
-  .date-cards { grid-template-columns: repeat(3, 1fr); border-bottom: 1px solid var(--line); }
-  .date-card { display: flex; flex-direction: column; padding: 36px 22px 34px; text-align: center; border-bottom: 0; }
+/* Grand écran : une colonne par événement, chaque ville coiffant ses colonnes */
+@media (min-width: 1000px) {
+  .date-groups { display: grid; grid-template-columns: repeat(var(--n, 5), minmax(0, 1fr)); }
+  .date-group { grid-column: span var(--cols, 1); display: flex; flex-direction: column; }
+  .date-group + .date-group { margin-top: 0; border-left: 1px solid var(--line); }
+  .date-group-head { flex-direction: column; align-items: center; gap: 6px; margin: 0; padding: 0 16px 20px; text-align: center; }
+  .date-cards { flex: 1; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); border-bottom: 1px solid var(--line); }
+  .date-card { display: flex; flex-direction: column; padding: 34px 16px 32px; text-align: center; border-bottom: 0; }
   .date-card + .date-card { border-left: 1px solid var(--line-soft); }
   .date-card::before { margin-bottom: 10px; }
   .date-card::after { position: static; margin-top: auto; padding-top: 20px; }
   /* Même hauteur de titre partout : les dates restent alignées d'une colonne à l'autre */
-  .date-card h3 { display: flex; align-items: center; justify-content: center; min-height: 2.2em; font-size: 32px; }
+  .date-card h3 { display: flex; align-items: center; justify-content: center; min-height: 2.3em; font-size: 28px; text-wrap: balance; }
+  .date-card .when, .date-card .tbc { font-size: 19px; text-wrap: balance; }
 }
-@media (min-width: 1000px) { .date-card h3 { min-height: 0; } }
 .dates-more { margin: 44px 0 0; text-align: center; }
 
 /* Compte à rebours, réponse et partage */
@@ -284,10 +294,16 @@ body[data-page='accueil'] .site-header:not(.scrolled) .monogram { opacity: 0; vi
 /* Même écriture que l'accueil : sections gravées sur papier ivoire, sans cartes */
 .section-events { padding: clamp(40px, 7vw, 76px) 0 clamp(52px, 8vw, 88px); }
 .events { display: grid; }
+/* Une section par ville : « À Daloa », puis « À Abidjan » */
+.city-group { scroll-margin-top: 84px; }
+.city-group + .city-group { margin-top: clamp(44px, 8vw, 72px); }
+.city-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px 24px; padding-bottom: 14px; border-bottom: 2px solid var(--night); }
+.city-head h2 { margin: 0; font-family: var(--serif); font-size: clamp(44px, 12vw, 64px); font-style: italic; font-weight: 500; line-height: 1; }
+.city-head p { margin: 0; font-size: 11.5px; font-weight: 600; letter-spacing: .2em; text-transform: uppercase; color: rgba(16, 27, 61, .72); }
 .event-card { scroll-margin-top: 84px; padding: 34px 0; border-bottom: 1px solid rgba(16, 27, 61, .18); }
 .event-card:last-child { border-bottom: 0; }
 .event-num { font-family: var(--serif); font-style: italic; font-size: 20px; line-height: 1.4; }
-.event-card h2 { font-family: var(--serif); font-size: clamp(34px, 9vw, 42px); font-weight: 500; margin: 2px 0 16px; line-height: 1.08; }
+.event-card h3 { font-family: var(--serif); font-size: clamp(34px, 9vw, 42px); font-weight: 500; margin: 2px 0 16px; line-height: 1.08; }
 .event-meta { margin: 0; }
 .event-meta div { padding: 11px 0; border-top: 1px solid rgba(16, 27, 61, .1); }
 .event-meta svg { display: none; }
@@ -299,13 +315,12 @@ body[data-page='accueil'] .site-header:not(.scrolled) .monogram { opacity: 0; vi
 .event-actions .btn { --h: 48px; font-size: 11.5px; letter-spacing: .14em; padding: 0 20px; color: var(--night); border-color: var(--night); background: transparent; }
 .event-actions .btn:hover { background: var(--night); color: var(--yellow); }
 .maps-pending { display: block; font-size: 13px; color: rgba(16, 27, 61, .68); }
+/* Ordinateur : une ligne par événement (titre à gauche, détails à droite), quel que soit leur nombre */
 @media (min-width: 900px) {
-  .events { grid-template-columns: repeat(3, 1fr); }
-  .event-card { padding: 10px 30px 14px; border-bottom: 0; }
-  .event-card h2 { font-size: 34px; }
-  .event-card:first-child { padding-left: 0; }
-  .event-card:last-child { padding-right: 0; }
-  .event-card + .event-card { border-left: 1px solid rgba(16, 27, 61, .18); }
+  .event-card { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); column-gap: 56px; padding: 40px 0; }
+  .event-card:last-child { padding-bottom: 14px; }
+  .event-card h3 { font-size: 40px; margin-bottom: 0; }
+  .event-meta div:first-child { border-top: 0; padding-top: 4px; }
 }
 
 /* ---------- Appel final (programme) ---------- */
@@ -343,6 +358,10 @@ body[data-page='accueil'] .site-header:not(.scrolled) .monogram { opacity: 0; vi
 
 /* Choix sous forme de pastilles / grandes cartes */
 .choices { display: grid; gap: 10px; }
+/* Ville des événements proposés (« À Daloa · Du 21 au 24 décembre 2026 ») */
+.choice-city { margin: 6px 0 -2px; font-size: 13px; color: rgba(16, 27, 61, .72); }
+.choice-city b { font-family: var(--serif); font-size: 21px; font-style: italic; font-weight: 600; color: var(--night); }
+.choice-city ~ .choice-city { margin-top: 18px; }
 .choices.cols-2 { grid-template-columns: 1fr; }
 @media (min-width: 480px) { .choices.cols-2 { grid-template-columns: 1fr 1fr; } }
 .choice { position: relative; display: block; cursor: pointer; }
