@@ -6,7 +6,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Étapes successives du compte à rebours (valeurs de secours si la base est injoignable).
   const MILESTONES = [
     { key: 'ceremonie', label: 'le mariage religieux', event_date: '2026-12-24', time_label: '8 h 00' },
-    { key: 'reception', label: 'la réception', event_date: '2027-01-03', time_label: null },
+    { key: 'reception', label: 'la réception', event_date: '2027-01-03', time_label: 'De 8 h 30 à 14 h' },
   ];
 
   // Heure cible à l'heure d'Abidjan (UTC+0). Sans horaire confirmé, on vise minuit le jour J.

@@ -85,8 +85,7 @@
     { key: 'chambre', title: 'Mise en chambre de la mariée', event_date: '2026-12-21', time_label: 'À partir de 14 h', venue: 'Domicile de la mariée, Daloa', address: 'Quartier Médico-Scolaire, près de l’Institut d’hygiène et du dispensaire urbain', maps_url: null, note: null, rsvp_enabled: true },
     { key: 'danse', title: 'Danse de réjouissance', event_date: '2026-12-23', time_label: 'À partir de 14 h', venue: 'Domicile de la mariée, Daloa', address: 'Quartier Médico-Scolaire, près de l’Institut d’hygiène et du dispensaire urbain', maps_url: null, note: null, rsvp_enabled: true },
     { key: 'ceremonie', title: 'Mariage religieux', event_date: '2026-12-24', time_label: '8 h 00', venue: 'Grande cour familiale, Daloa', address: 'Quartier Djoulabougou, non loin de l’établissement Djoulabougou', maps_url: null, note: 'Fouroussiri et attachement des colas, suivis d’une réception au domicile de la mariée (quartier Médico-Scolaire).', rsvp_enabled: true },
-    { key: 'preche', title: 'Prêche', event_date: null, time_label: null, venue: 'Mosquée du Nouveau Quartier, Yopougon', address: null, maps_url: null, note: 'La date et l’horaire seront communiqués prochainement.', rsvp_enabled: false },
-    { key: 'reception', title: 'Réception', event_date: '2027-01-03', time_label: null, venue: 'Yopougon Nouveau Quartier, Abidjan', address: 'Terrain situé à environ 15 mètres de la mosquée', maps_url: null, note: null, rsvp_enabled: true },
+    { key: 'reception', title: 'Réception', event_date: '2027-01-03', time_label: 'De 8 h 30 à 14 h', venue: 'Yopougon Nouveau Quartier, Abidjan', address: 'Terrain situé à environ 15 mètres de la mosquée', maps_url: null, note: null, rsvp_enabled: true },
   ];
 
   let infoPromise = null;

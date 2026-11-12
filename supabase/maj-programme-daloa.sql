@@ -7,8 +7,11 @@
 --  la clé « ceremonie » est conservée, les confirmations déjà reçues
 --  pour la cérémonie valent pour le mariage religieux du 24 décembre.
 --
---  Le prêche et la réception d'Abidjan ne sont pas modifiés (seul leur
---  ordre d'affichage change : ils passent après les journées de Daloa).
+--  Abidjan : une seule journée, la réception du dimanche 3 janvier 2027
+--  de 8 h 30 à 14 h. L'ancienne fiche « preche » est masquée (pas de carte
+--  séparée) ; une éventuelle confirmation pour celle-ci est reportée sur la réception.
+--
+--  Le script peut être relancé sans risque s'il a déjà été exécuté.
 -- =====================================================================
 
 begin;
@@ -43,9 +46,34 @@ update public.events set
   updated_at   = now()
 where key = 'ceremonie';
 
--- 4. Abidjan : après Daloa dans l'ordre d'affichage
-update public.events set sort_order = 4 where key = 'preche';
-update public.events set sort_order = 5 where key = 'reception';
+-- 4. Abidjan : la réception du 3 janvier, de 8 h 30 à 14 h
+update public.events set
+  sort_order = 5,
+  event_date = '2027-01-03',
+  time_label = 'De 8 h 30 à 14 h',
+  note       = null,
+  rsvp_enabled = true,
+  visible    = true,
+  updated_at = now()
+where key = 'reception';
+
+update public.events set
+  sort_order   = 4,
+  event_date   = '2027-01-03',
+  time_label   = '10 h – 12 h',
+  venue        = 'Yopougon Nouveau Quartier, Abidjan',
+  address      = null,
+  note         = null,
+  rsvp_enabled = false,
+  visible      = false,
+  updated_at   = now()
+where key = 'preche';
+
+-- Une confirmation éventuelle pour l'ancienne fiche « preche » vaut pour la réception (sans doublon).
+update public.guests set
+  events = array(select distinct e from unnest(array_replace(events, 'preche', 'reception')) e order by e),
+  updated_at = now()
+where 'preche' = any(events);
 
 commit;
 

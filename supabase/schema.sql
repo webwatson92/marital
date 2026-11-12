@@ -62,10 +62,13 @@ insert into public.events (key, sort_order, title, event_date, time_label, venue
   ('ceremonie', 3, 'Mariage religieux', '2026-12-24', '8 h 00', 'Grande cour familiale, Daloa',
      'Quartier Djoulabougou, non loin de l''établissement Djoulabougou', null,
      'Fouroussiri et attachement des colas, suivis d''une réception au domicile de la mariée (quartier Médico-Scolaire).', true, true),
-  ('preche',    4, 'Prêche', null, null, 'Mosquée du Nouveau Quartier, Yopougon', null, null,
-     'La date et l''horaire seront communiqués prochainement.', false, true),
-  ('reception', 5, 'Réception', '2027-01-03', null, 'Yopougon Nouveau Quartier, Abidjan',
-     'Terrain situé à environ 15 mètres de la mosquée', null, null, true, true)
+  -- Abidjan : la réception du 3 janvier (8 h 30 – 14 h). L'ancienne fiche « preche » est
+  -- conservée mais masquée (pas de carte séparée).
+  ('preche',    4, 'Prêche', '2027-01-03', '10 h – 12 h', 'Yopougon Nouveau Quartier, Abidjan', null, null,
+     null, false, false),
+  ('reception', 5, 'Réception', '2027-01-03', 'De 8 h 30 à 14 h', 'Yopougon Nouveau Quartier, Abidjan',
+     'Terrain situé à environ 15 mètres de la mosquée', null,
+     null, true, true)
 on conflict (key) do nothing;
 
 -- Invités et réponses

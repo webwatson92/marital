@@ -34,7 +34,8 @@ before(async () => {
 test('le programme public ne contient que les infos confirmées', async () => {
   const info = await rpc(db, guest, 'get_public_info');
   assert.equal(info.rsvp_open, true);
-  assert.deepEqual(info.events.map((e) => e.key), ['chambre', 'danse', 'ceremonie', 'preche', 'reception']);
+  // Le prêche fait partie de la réception d'Abidjan : sa fiche existe mais est masquée.
+  assert.deepEqual(info.events.map((e) => e.key), ['chambre', 'danse', 'ceremonie', 'reception']);
   const byKey = Object.fromEntries(info.events.map((e) => [e.key, e]));
   // Daloa : carton d'invitation « Mariage religieux »
   assert.equal(byKey.chambre.event_date, '2026-12-21');
@@ -46,11 +47,22 @@ test('le programme public ne contient que les infos confirmées', async () => {
   assert.equal(byKey.ceremonie.time_label, '8 h 00');
   assert.match(byKey.ceremonie.address, /Djoulabougou/);
   for (const k of ['chambre', 'danse', 'ceremonie']) assert.equal(byKey[k].rsvp_enabled, true, k);
-  // Abidjan : inchangé
+  // Abidjan : une seule journée, la réception, de 8 h 30 à 14 h
   assert.equal(byKey.reception.event_date, '2027-01-03');
-  assert.equal(byKey.preche.event_date, null, 'la date du prêche ne doit pas être supposée');
-  assert.equal(byKey.preche.rsvp_enabled, false);
-  for (const k of ['preche', 'reception']) assert.equal(byKey[k].time_label, null, 'aucun horaire inventé');
+  assert.equal(byKey.reception.time_label, 'De 8 h 30 à 14 h');
+  assert.equal(byKey.reception.note, null);
+  assert.equal(byKey.reception.rsvp_enabled, true);
+});
+
+test('le script de mise à jour reporte une confirmation « prêche » sur la réception', async () => {
+  const other = await createDb();
+  await other.query(`insert into public.guests (full_name, phone, phone_key, category, status, party_size, events)
+    values ('Awa', '0700000001', '2250700000001', 'ami', 'yes', 1, '{preche,reception}'),
+           ('Binta', '0700000002', '2250700000002', 'ami', 'yes', 1, '{ceremonie,preche}')`);
+  await other.exec(readFileSync(path.join(root, 'supabase/maj-programme-daloa.sql'), 'utf8'));
+  const rows = (await other.query(`select full_name, events from public.guests order by full_name`)).rows;
+  assert.deepEqual(rows.map((r) => r.events), [['reception'], ['ceremonie', 'reception']]);
+  await other.close();
 });
 
 test('le script de mise à jour donne le même programme qu’une installation neuve', async () => {
@@ -117,7 +129,7 @@ test('validation côté serveur', async () => {
     [{ phone: '07 11 22 33 44', status: 'pending' }, 'VALIDATION:status'],
     [{ phone: '07 11 22 33 44', party_size: 0 }, 'VALIDATION:party_size'],
     [{ phone: '07 11 22 33 44', party_size: 99 }, 'VALIDATION:party_size'],
-    [{ phone: '07 11 22 33 44', events: ['preche'] }, 'VALIDATION:events'], // prêche pas encore ouvert
+    [{ phone: '07 11 22 33 44', events: ['preche'] }, 'VALIDATION:events'], // prêche masqué (compris dans la réception)
     [{ phone: '07 11 22 33 44', events: [] }, 'VALIDATION:events'],
     [{ phone: '07 11 22 33 44', website: 'http://spam' }, 'SPAM'],
   ];
